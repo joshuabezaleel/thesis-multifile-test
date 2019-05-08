@@ -1,0 +1,25 @@
+
+<vdb name="default" version="1">
+  
+    <description>The Default VDB</description>
+  
+    <model name="defaultphysical" type="PHYSICAL">
+        <source name="text-connector" translator-name="file" connection-jndi-name="java:/marketdata-file"/>
+    </model>
+  
+    <model name="default" type="VIRTUAL">
+        <metadata type="DDL"><![CDATA[
+        CREATE VIEW Sales (
+            "year" bigdecimal,
+            product string,
+            store string,
+            city string,
+            sales bigdecimal
+        ) AS  
+          SELECT "ZAKY.year", ZAKY.product, ZAKY.store, ZAKY.city, ZAKY.sales
+            FROM (EXEC DefaultPhysical.getTextFiles('default.csv')) AS f, 
+            TEXTTABLE(f.file COLUMNS "year" bigdecimal, product string, store string, city string, sales bigdecimal HEADER) AS ZAKY;
+          
+        ]]> </metadata>
+    </model>
+</vdb>
