@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,79 +48,121 @@ import olapcube.Measure;
 import olapcube.OLAPCube;
 
 public class Main {
+	private static Admin admin;
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws Exception {
 		
 		// Variables definition
+		String folderPath = "";
 		Scanner reader = new Scanner(System.in);
 		Util util = new Util();
-		// Testing multifile VDB
-		OLAPCube cube = new OLAPCube("temporary name");
+		OLAPCube cube = new OLAPCube(null);
 		DataSourceDataTypeFiles dataSourceDataTypeFiles = new DataSourceDataTypeFiles();
+		
+		// Handler initialization
+		DataSourceHandler dataSourceHandler = new DataSourceHandler();
+		OLAPCubeHandler olapCubeHandler = new OLAPCubeHandler();
+		CubeSchemaMaker cubeSchemaMaker = new CubeSchemaMaker();
+		OBDAMaker obdaMaker = new OBDAMaker();
+		PropertyMaker propertyMaker = new PropertyMaker();
+		VDBHandler vdbHandler = new VDBHandler();
+		
+		// Starting the teiid Admin
+		admin = AdminFactory.getInstance().createAdmin("localhost", AdminUtil.MANAGEMENT_PORT , "admin", "admin".toCharArray());
+//		
+//		// Deleting all the previous data sources and deployed VDB
+		Collection<String> dataSourceNames = new ArrayList<String>();
+		dataSourceNames = admin.getDataSourceNames();
+		for(String dataSourceName : dataSourceNames) {
+			if(!dataSourceName.equals("teiid-olingo-odata4.DefaultDataSource")) {
+				admin.deleteDataSource(dataSourceName);
+			}
+		}
+//		
+		List<String> deployments = admin.getDeployments();
+		for(String deployment : deployments) {
+			if(!deployment.equals("teiid-olingo-odata4.war")) {
+				admin.undeploy(deployment);
+			}
+			System.out.println(deployment);
+		}
+//		
+		admin.restart();
 		
 		/*
 		 *  Input folder containing CSV files
 		 */
-		System.out.print("Input the path to the folder containing the CSVs: ");
+		System.out.print("Is this the new cube and data source files that you want to make? (YES/NO): ");
 		reader = new Scanner(System.in);
-		String folderPath = reader.nextLine();
-		File file = new File(folderPath);
-		File[] csvs = file.listFiles(new FilenameFilter() {
+		String userInput = reader.nextLine();
+		
+		if(userInput.equals("NO")) {
+			// Means that they already had defined cube and its data source files
+			System.out.print("Input the pat to the folder containig the predefined JSON file for cube and datasources: ");
+			reader = new Scanner(System.in);
+			folderPath = reader.nextLine();
 			
-			public boolean accept(File dir, String name) {
-                if(name.toLowerCase().endsWith(".csv")){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-		});
-		
-		// Create output directory
-		File dir = new File (folderPath+"/output");
-		dir.mkdir();
-		
-		/*
-		 * Defining data sources, its columns and datatypes for further usage
-		 */
-		DataSourceHandler dataSourceHandler = new DataSourceHandler();
-		dataSourceDataTypeFiles = dataSourceHandler.make(folderPath,csvs);
-		dataSourceHandler.encodeToJSON(dataSourceDataTypeFiles,folderPath);
-		dataSourceHandler.printAllDataSource(dataSourceDataTypeFiles);
-		
-		/*
-		 * Creating OLAP Cube Schema
-		 */
-		System.out.println("=== OLAP CUBE DEFINITION ===");
-		OLAPCubeHandler olapCubeHandler = new OLAPCubeHandler();
-		cube = olapCubeHandler.make(dataSourceDataTypeFiles);
-		olapCubeHandler.encodeToJSON(cube,folderPath);
+			dataSourceDataTypeFiles = dataSourceHandler.decodeFromJSON(folderPath);
+			dataSourceHandler.printAllDataSource(dataSourceDataTypeFiles);
+			
+			cube = olapCubeHandler.decodeFromJSON(folderPath);
+			cube.printCube();
+		} else {
+			System.out.print("Input the path to the folder containing the CSVs: ");
+			reader = new Scanner(System.in);
+			folderPath = reader.nextLine();
+			
+			File file = new File(folderPath);
+			File[] csvs = file.listFiles(new FilenameFilter() {
+				
+				public boolean accept(File dir, String name) {
+	                if(name.toLowerCase().endsWith(".csv")){
+	                    return true;
+	                } else {
+	                    return false;
+	                }
+	            }
+			});
+			
+			/*
+			 * Defining data sources, its columns and datatypes for further usage
+			 */
+			dataSourceDataTypeFiles = dataSourceHandler.make(folderPath,csvs);
+			dataSourceHandler.encodeToJSON(dataSourceDataTypeFiles,folderPath);
+			dataSourceHandler.printAllDataSource(dataSourceDataTypeFiles);
+			
+			/*
+			 * Creating OLAP Cube Schema
+			 */
+			System.out.println("=== OLAP CUBE DEFINITION ===");
+			cube = olapCubeHandler.make(dataSourceDataTypeFiles);
+			olapCubeHandler.encodeToJSON(cube,folderPath);
+			cube.printCube();
+			
+		}
 		
 		/*
 		 *  Creating cube schema (.ttl file) from the OLAPCube datatype for 
 		 *  the backbone of the cube structure
 		 */
-//		CubeSchemaMaker cubeSchemaMaker = new CubeSchemaMaker();
-//		cubeSchemaMaker.make(cube, folderPath);
+		cubeSchemaMaker.make(cube, folderPath);
 		
 		/*
 		 *  Creating OBDA (.obda) file (mapping from VDB to QB4OLAP ontology concept)
 		 */
-//		OBDAMaker obdaMaker = new OBDAMaker();
-//		obdaMaker.make(cube,dataSourceDataTypeFiles);
+		obdaMaker.make(cube,dataSourceDataTypeFiles, folderPath);
 		
 		/*
 		 *  Creating property file that describe the connection for Ontop at the Docker to Teiid via JDBC
 		 */
-//		PropertyMaker propertyMaker = new PropertyMaker();
-//		propertyMaker.make(cube);
+		propertyMaker.make(cube,folderPath);
 
 		/*
 		 * VDBHandler handle the (1) creating the VDB from all of the CSVs for virtualization 
 		 * and (2) creating connection and deploying the VDB to Teiid Server
 		 */
-		VDBHandler vdbHandler = new VDBHandler();
-		vdbHandler.makeAndDeploy(cube,dataSourceDataTypeFiles,folderPath);
+		vdbHandler.makeAndDeploy(cube,dataSourceDataTypeFiles,folderPath, admin);
+		
 		
 		// Connection Test
 //		Connection conn = TeiidDriver.getInstance().connect("jdbc:teiid:sales.1@mm://localhost:31000;user=usernew;password=user1664!", null);

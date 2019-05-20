@@ -35,7 +35,7 @@ public class CubeSchemaMaker {
 		
 		// Setting up
 		ModelBuilder builder = new ModelBuilder();
-		FileOutputStream out = new FileOutputStream(folderPath+"/output/"+cubeName+".ttl");
+		FileOutputStream out = new FileOutputStream(folderPath+"/"+cubeName+".ttl");
 		
 		// Setting namespaces
 		builder.setNamespace("data","http://example.com/data/");
@@ -130,11 +130,11 @@ public class CubeSchemaMaker {
 					builder.add("schema:"+level.getLevelName(),RDF.TYPE, "qb4o:LevelProperty");
 					for(LevelAttribute levelAttribute : level.getAllLevelAttributes()) {
 						// hasAttribute
-						builder.add("schema:"+level.getLevelName(), "qb4o:hasAttribute","property:"+levelAttribute.getLevelAttributeName()+"Property");
+						builder.add("schema:"+level.getLevelName(), "qb4o:hasAttribute","property:"+levelAttribute.getLevelAttributeName());
 						// LevelAttribute
-						builder.add("property:"+levelAttribute.getLevelAttributeName()+"Property",RDF.TYPE,"qb4o:LevelAttribute");
+						builder.add("property:"+levelAttribute.getLevelAttributeName(),RDF.TYPE,"qb4o:LevelAttribute");
 						// rdfs:range
-						builder.add("property:"+levelAttribute.getLevelAttributeName()+"Property",RDFS.RANGE,"xsd:"+levelAttribute.getLevelAttributeDataType());
+						builder.add("property:"+levelAttribute.getLevelAttributeName(),RDFS.RANGE,"xsd:"+levelAttribute.getLevelAttributeDataType());
 					}
 				}
 			}
@@ -152,8 +152,8 @@ public class CubeSchemaMaker {
 						.add("qb4o:pcCardinality", "qb4o:ManyToOne")
 						.add("qb4o:rollup","schema:"+dimension.getDimensionName()+"Dimension-"+hierarchy.getHierarchyName()+"Hierarchy-Rollup"+rollUpIt)
 //					// childLevel and parentLevel
-						.add("qb4o:childLevel", "schema:"+levelsList.get(rollUpIt))
-						.add("qb4o:childLevel", "schema:"+levelsList.get(rollUpIt+1));
+						.add("qb4o:childLevel", "schema:"+levelsList.get(rollUpIt).getLevelName())
+						.add("qb4o:parentLevel", "schema:"+levelsList.get(rollUpIt+1).getLevelName());
 				}
 			}
 		}

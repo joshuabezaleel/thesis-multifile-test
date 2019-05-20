@@ -60,7 +60,11 @@ public class OLAPCube {
 				for(Map.Entry<String, Level> level : hierarchy.getValue().getAllLevels().entrySet()) {
 					System.out.println("    Level "+level.getValue().getLevelName());
 					for(LevelAttribute levelAttribute : level.getValue().getAllLevelAttributes()) {
-						System.out.println("      LevelAttribute "+levelAttribute.getLevelAttributeName());
+						if(levelAttribute.getLevelAttributeName().equals(level.getValue().getPrimaryAttribute().getLevelAttributeName())) {
+							System.out.println("      LevelAttribute (p) "+levelAttribute.getLevelAttributeName());
+						} else {
+							System.out.println("      LevelAttribute "+levelAttribute.getLevelAttributeName());
+						}
 					}
 				}
 			}

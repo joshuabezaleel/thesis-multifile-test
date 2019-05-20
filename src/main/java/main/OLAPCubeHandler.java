@@ -3,6 +3,8 @@ package main;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.json.JSONObject;
@@ -24,12 +26,13 @@ public class OLAPCubeHandler {
 		int userInputInt;
 		Scanner reader = new Scanner(System.in);
 		String currDimension, currHierarchy, currLevel;
-		Measure tempMeasure = new Measure(null,null,null,0);
+		Measure tempMeasure = new Measure(null,null,null);
 		Dimension tempDimension = new Dimension(null);
 		Hierarchy tempHierarchy = new Hierarchy(null);
 		Level tempLevel = new Level(null);
-		LevelAttribute tempLevelAttribute = new LevelAttribute(null,null,0);
+		LevelAttribute tempLevelAttribute = new LevelAttribute(null,null);
 		DataSourceDataType tempDataSourceDataType = new DataSourceDataType(0,null,null);
+		List<Integer> numbers = new ArrayList<Integer>();
 
 		System.out.println("This CLI program will guide you through the process of making a OLAP cube structure");
 		System.out.print("Input the cube's name here: ");
@@ -107,16 +110,25 @@ public class OLAPCubeHandler {
 //										
 //										level.levelAttributes.put(tempLevelAttribute,columnDataTypes.get(tempLevelAttribute));
 //										System.out.println(tempLevelAttribute+" "+columnDataTypes.get(tempLevelAttribute));
-										userInputInt = Integer.parseInt(userInput);
+//										userInputInt = Integer.parseInt(userInput);
+										String[] numberArray = userInput.split(",");
+										for(String number : numberArray) {
+											numbers.add(Integer.parseInt(number));
+										}
 										
-										tempDataSourceDataType = dataSourceDataTypeFiles.getLevelAttributeById(userInputInt);
-										tempLevelAttribute = new LevelAttribute(tempDataSourceDataType.getColumnName(),tempDataSourceDataType.getDataType(), userInputInt);
+										// TODO ini buat apa ya? 
+										tempDataSourceDataType = dataSourceDataTypeFiles.getLevelAttributeById(numbers.get(0));
+										tempLevelAttribute = new LevelAttribute(tempDataSourceDataType.getColumnName(),tempDataSourceDataType.getDataType());
+										for(int number : numbers) {
+											tempLevelAttribute.addDataSourceDataTypeId(number);
+										}
 										
 										if(isPrimaryAttribute) {
 											cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).getLevelByName(currLevel).setPrimaryLevelAttribute(tempLevelAttribute);
 											isPrimaryAttribute = false;
 										}
 										cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).getLevelByName(currLevel).addLevelAttribute(tempLevelAttribute);
+										numbers = new ArrayList<Integer>();
 									}
 								} while(!userInput.equals("end"));
 //								level = new Level(null);
@@ -144,30 +156,41 @@ public class OLAPCubeHandler {
 			userInput = reader.nextLine();
 			
 			if(!userInput.equals("end")) {
-				userInputInt = Integer.parseInt(userInput);
+				String[] numberArray = userInput.split(",");
+				for(String number : numberArray) {
+					numbers.add(Integer.parseInt(number));
+				}
+				tempDataSourceDataType = dataSourceDataTypeFiles.getLevelAttributeById(numbers.get(0));
+				
 //				String tempMeasure = columns[Integer.parseInt(userInput)-1];
-				System.out.println("Choose AggregateFunction for the Measure "+dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getColumnName());
+				System.out.println("Choose AggregateFunction for the Measure "+tempDataSourceDataType.getColumnName());
 				System.out.println("1=sum, 2=avg, 3=count, 4=min, 5=max");
 				reader = new Scanner(System.in);
 				userInput = reader.nextLine();
+				
 				switch (Integer.parseInt(userInput)) {
 					case 1:
-						tempMeasure = new Measure(dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getColumnName(),dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getDataType(),"sum",userInputInt);
+						tempMeasure = new Measure(tempDataSourceDataType.getColumnName(),tempDataSourceDataType.getDataType(),"sum");
 						break;
 					case 2:
-						tempMeasure = new Measure(dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getColumnName(),dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getDataType(),"avg",userInputInt);
+						tempMeasure = new Measure(tempDataSourceDataType.getColumnName(),tempDataSourceDataType.getDataType(),"avg");
 						break;
 					case 3:
-						tempMeasure = new Measure(dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getColumnName(),dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getDataType(),"count",userInputInt);
+						tempMeasure = new Measure(tempDataSourceDataType.getColumnName(),tempDataSourceDataType.getDataType(),"count");
 						break;
 					case 4:
-						tempMeasure = new Measure(dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getColumnName(),dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getDataType(),"min",userInputInt);
+						tempMeasure = new Measure(tempDataSourceDataType.getColumnName(),tempDataSourceDataType.getDataType(),"min");
 						break;
 					case 5:
-						tempMeasure = new Measure(dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getColumnName(),dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getDataType(),"max",userInputInt);
+						tempMeasure = new Measure(tempDataSourceDataType.getColumnName(),tempDataSourceDataType.getDataType(),"max");
 						break;
 				}
-				cube.addMeasure(dataSourceDataTypeFiles.getLevelAttributeById(userInputInt).getColumnName(), tempMeasure);
+				
+				for(int number : numbers) {
+					tempMeasure.addDataSourceDataTypeId(number);
+				}
+				
+				cube.addMeasure(tempDataSourceDataType.getColumnName(), tempMeasure);
 
 			}
 		} while(!userInput.equals("end"));
@@ -204,6 +227,15 @@ public class OLAPCubeHandler {
 					levelJSON.put("levelName", level.getLevelName());
 					
 					// Primary Level Attribute
+//					JSONObject primaryLevelAttributeJSON = new JSONObject();
+//					primaryLevelAttributeJSON.put("levelAttributeName", level.getPrimaryAttribute().getLevelAttributeName());
+//					primaryLevelAttributeJSON.put("levelAttributeDataType", level.getPrimaryAttribute().getLevelAttributeDataType());
+//					String temps = "";
+//					for(int temp : level.getPrimaryAttribute().getAllDataSourceDataTypeIds()) {
+//						temps = temps.concat(temp + ",");
+//					}
+//					primaryLevelAttributeJSON.put("dataSourceDataTypeIds", temps);
+//					levelJSON.put("primaryLevelAttribute", primaryLevelAttributeJSON);
 					levelJSON.put("primaryLevelAttribute", level.getPrimaryAttribute().getLevelAttributeName());
 					
 					// Level Attributes
@@ -212,7 +244,12 @@ public class OLAPCubeHandler {
 						JSONObject levelAttributeJSON = new JSONObject();
 						levelAttributeJSON.put("levelAttributeName", levelAttribute.getLevelAttributeName());
 						levelAttributeJSON.put("levelAttributeDataType", levelAttribute.getLevelAttributeDataType());
-						levelAttributeJSON.put("dataSourceDataTypeId", levelAttribute.getDataSourceDataTypeId());
+						
+						String tempDataSourceDataTypeIds = "";
+						for(int dataSourceDataTypeId : levelAttribute.getAllDataSourceDataTypeIds()) {
+							tempDataSourceDataTypeIds = tempDataSourceDataTypeIds.concat(dataSourceDataTypeId + ",");
+						}
+						levelAttributeJSON.put("dataSourceDataTypeIds", tempDataSourceDataTypeIds);
 						levelAttributesJSON.put(levelAttributeJSON);
 					}
 					
@@ -238,6 +275,13 @@ public class OLAPCubeHandler {
 			measureJSON.put("measureName", measure.getMeasureName());
 			measureJSON.put("measureDataType", measure.getMeasureDataType());
 			measureJSON.put("measureAggregateFunction", measure.getMeasureAggregateFunction());
+			
+			String tempDataSourceDataTypeIds = "";
+			for(int dataSourceDataTypeId : measure.getAllDataSourceDataTypeIds()) {
+				tempDataSourceDataTypeIds = tempDataSourceDataTypeIds.concat(dataSourceDataTypeId + ",");
+			}
+			measureJSON.put("dataSourceDataTypeIds", tempDataSourceDataTypeIds);
+			
 			measuresJSON.put(measureJSON);
 		}
 		
@@ -247,12 +291,11 @@ public class OLAPCubeHandler {
 		
 		PrintWriter pw;
 		try {
-			pw = new PrintWriter(folderPath+"/output/olapCube.json");
+			pw = new PrintWriter(folderPath+"/olapCube.json");
 			pw.write(cubeJSON.toString(2));
 			pw.flush();
 			pw.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -260,13 +303,14 @@ public class OLAPCubeHandler {
 	public OLAPCube decodeFromJSON(String folderPath) throws IOException {
 		// Temporary variables
 		String currDimension, currHierarchy, currLevel, lowestLevel, primaryLevelAttribute;
-		Measure tempMeasure = new Measure(null,null,null,0);
+		Measure tempMeasure = new Measure(null,null,null);
 		Dimension tempDimension = new Dimension(null);
 		Hierarchy tempHierarchy = new Hierarchy(null);
 		Level tempLevel = new Level(null);
-		LevelAttribute tempLevelAttribute = new LevelAttribute(null,null,0);
+		LevelAttribute tempLevelAttribute = new LevelAttribute(null,null);
+//		List<Integer> tempNumbers = new ArrayList<Integer>();
 		
-		File file = new File(folderPath+"/output/olapCube.json");
+		File file = new File(folderPath+"/olapCube.json");
 		String fileContent = FileUtils.readFileToString(file, "utf-8");
 		
 		JSONObject cubeJSON = new JSONObject(fileContent);
@@ -305,15 +349,25 @@ public class OLAPCubeHandler {
 						cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).setLowestLevel(tempLevel);
 					}
 					
-					primaryLevelAttribute = levelJSON.getString("primaryLevelAttributeName");
+//					String primaryLevelAttributeJSON = levelJSON.getJSONObject("primaryLevelAttribute");
+//					String temps = primaryLevelAttributeJSON.getString("dataSourceDataTypeIds");
+//					String [] tempnumbs = temps.split(",");
+//					primaryLevelAttribute = levelJSON.getString("primaryLevelAttribute");
+					primaryLevelAttribute = levelJSON.getString("primaryLevelAttribute");
 					
 					JSONArray levelAttributesJSON = levelJSON.getJSONArray("levelAttributes");
 					for(Object levelAttribute : levelAttributesJSON) {
 						JSONObject levelAttributeJSON = (JSONObject) levelAttribute;
 						
-						tempLevelAttribute = new LevelAttribute(levelAttributeJSON.getString("levelAttributeName"),levelAttributeJSON.getString("levelAttributeDataType"),levelAttributeJSON.getInt("dataSourceDataTypeId"));
+						tempLevelAttribute = new LevelAttribute(levelAttributeJSON.getString("levelAttributeName"),levelAttributeJSON.getString("levelAttributeDataType"));
+						String numbers = levelAttributeJSON.getString("dataSourceDataTypeIds");
+						String[] dataSourceDataTypeIds = numbers.split(",");
+						for(String dataSourceDataTypeId : dataSourceDataTypeIds) {
+							tempLevelAttribute.addDataSourceDataTypeId(Integer.parseInt(dataSourceDataTypeId));
+						}
 						cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).getLevelByName(currLevel).addLevelAttribute(tempLevelAttribute);
 						
+						// DELETE CANDIDATE
 						// Primary Level Attribute
 						if(levelAttributeJSON.getString("levelAttributeName").equals(primaryLevelAttribute)) {
 							cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).getLevelByName(currLevel).setPrimaryLevelAttribute(tempLevelAttribute);
@@ -329,7 +383,13 @@ public class OLAPCubeHandler {
 		for(Object measure : measuresJSON) {
 			JSONObject measureJSON = (JSONObject) measure;
 			
-			tempMeasure = new Measure(measureJSON.getString("measureName"),measureJSON.getString("measureDataType"),measureJSON.getString("measureAggregateFunction"),measureJSON.getInt("dataSourceDataTypeId"));
+			tempMeasure = new Measure(measureJSON.getString("measureName"),measureJSON.getString("measureDataType"),measureJSON.getString("measureAggregateFunction"));
+			String numbers = measureJSON.getString("dataSourceDataTypeIds");
+			String[] dataSourceDataTypeIds = numbers.split(",");
+			for(String dataSourceDataTypeId : dataSourceDataTypeIds) {
+				tempMeasure.addDataSourceDataTypeId(Integer.parseInt(dataSourceDataTypeId));
+			}
+			
 			cube.addMeasure(measureJSON.getString("measureName"), tempMeasure);
 		}
 		

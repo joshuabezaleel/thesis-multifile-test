@@ -90,7 +90,7 @@ public class DataSourceHandler {
 		
 		PrintWriter pw;
 		try {
-			pw = new PrintWriter(folderPath+"/output/dataSources.json");
+			pw = new PrintWriter(folderPath+"/dataSources.json");
 			pw.write(rootJSON.toString(2));
 			System.out.println(pw.checkError());
 			pw.flush();
@@ -108,7 +108,7 @@ public class DataSourceHandler {
 		ArrayList<DataSourceDataType> tempDataTypeList = new ArrayList<DataSourceDataType>();
 		String csvName;
 		
-		File file = new File(folderPath+"/output/dataSources.json");
+		File file = new File(folderPath+"/dataSources.json");
 		String content = FileUtils.readFileToString(file, "utf-8");
 		
 		JSONObject rootJSON = new JSONObject(content);

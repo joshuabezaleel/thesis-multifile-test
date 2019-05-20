@@ -1,16 +1,19 @@
 package olapcube;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Measure {
 	private String measureName;
 	private String measureDataType;
 	private String measureAggregateFunction;
-	private int dataSourceDataTypeId;
+	private List<Integer> dataSourceDataTypeIds = new ArrayList<Integer>();
+//	private int dataSourceDataTypeId;
 	
-	public Measure(String measureName, String measureDataType, String measureAggregateFunction, int dataSourceDataTypeId) {
+	public Measure(String measureName, String measureDataType, String measureAggregateFunction) {
 		this.measureName = measureName;
 		this.measureDataType = measureDataType;
 		this.measureAggregateFunction = measureAggregateFunction;
-		this.dataSourceDataTypeId = dataSourceDataTypeId;
 	}
 	
 	public String getMeasureName() {
@@ -25,10 +28,6 @@ public class Measure {
 		return this.measureAggregateFunction;
 	}
 	
-	public int getDataSourceDataTypeId() {
-		return this.dataSourceDataTypeId;
-	}
-	
 	public void setMeasureName(String measureName) {
 		this.measureName = measureName;
 	}
@@ -41,7 +40,12 @@ public class Measure {
 		this.measureAggregateFunction = measureAggregateFunction;
 	}
 	
-	public void setDataSourceDataTypeId(int dataSourceDataTypeId) {
-		this.dataSourceDataTypeId = dataSourceDataTypeId;
+	public void addDataSourceDataTypeId(int dataSourceDataTypeId) {
+		this.dataSourceDataTypeIds.add(dataSourceDataTypeId);
 	}
+	
+	public List<Integer> getAllDataSourceDataTypeIds() {
+		return this.dataSourceDataTypeIds;
+	}
+	
 }
