@@ -226,7 +226,7 @@ public class VDBHandler {
 		
 //		resultSet = stmt.executeQuery("select * from (select npsn from nama_1 union select npsn from nama_2) as a1, (select tahun from nilai_2015 union select tahun from nilai_2016) as a2, (select subjek from tipe_subjek) as a3, (select * from nilai_2015) as a4 where a4.npsn = a1.npsn and a4.tahun = a2.tahun and a4.subjek = a3.subjek");
 //		resultSet = stmt.executeQuery("select npsn, tahun, subjek, nilai from nilai_2015");
-		resultSet = stmt.executeQuery("select distinct nama_1.npsn, nama_2.nama from nama_2, nama_1 where nama_2.npsn=nama_1.npsn");
+		resultSet = stmt.executeQuery("select * from wilayah_arcamanik");
 		rsmd = resultSet.getMetaData();
 		columnsNumber = rsmd.getColumnCount();
 		for (int i=1; i<=columnsNumber; i++) {

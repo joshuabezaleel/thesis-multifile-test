@@ -98,7 +98,7 @@ public class Main {
 		
 		if(userInput.equals("NO")) {
 			// Means that they already had defined cube and its data source files
-			System.out.print("Input the pat to the folder containig the predefined JSON file for cube and datasources: ");
+			System.out.print("Input the path to the folder containig the predefined JSON file for cube and datasources: ");
 			reader = new Scanner(System.in);
 			folderPath = reader.nextLine();
 			

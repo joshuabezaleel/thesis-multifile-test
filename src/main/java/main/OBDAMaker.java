@@ -107,11 +107,13 @@ public class OBDAMaker {
 					if(level != hierarchy.getLastLevel()) {
 						Level nextLevel = hierarchy.getLevelsList().get(hierarchy.getLevelsList().indexOf(level)+1);
 //						String fileName = dataSourceDataTypeFiles.getFileNameFromId(level.getPrimaryAttribute().getAllDataSourceDataTypeIds().get(0));
-						String nextLevelFile = dataSourceDataTypeFiles.getFileNameFromId(nextLevel.getPrimaryAttribute().getAllDataSourceDataTypeIds().get(0));
-						fw.write("mappingId\tMAPID-"+dimension.getDimensionName()+"Dimension-"+hierarchy.getHierarchyName()+"Hierarchy-"+level.getLevelName()+"To"+nextLevel.getLevelName()+"-RollupProperty\n");
-						fw.write("target\t\tdata:"+level.getLevelName()+"-{"+level.getPrimaryAttribute().getLevelAttributeName()+"} " + "schema:"+dimension.getDimensionName()+"Dimension-"+hierarchy.getHierarchyName()+"Hierarchy-Rollup"+RollupIter+" data:"+nextLevel.getLevelName()+"-{"+nextLevel.getPrimaryAttribute().getLevelAttributeName()+"} .\n");
-						fw.write("source\t\tselect distinct "+level.getPrimaryAttribute().getLevelAttributeName()+", "+nextLevel.getPrimaryAttribute().getLevelAttributeName()+" from "+nextLevelFile+"\n");
-						fw.write("\n");
+						for(int dataSourceDataTypeId : nextLevel.getPrimaryAttribute().getAllDataSourceDataTypeIds()) {
+							String nextLevelFile = dataSourceDataTypeFiles.getFileNameFromId(dataSourceDataTypeId);
+							fw.write("mappingId\tMAPID-"+dimension.getDimensionName()+"Dimension-"+hierarchy.getHierarchyName()+"Hierarchy-"+level.getLevelName()+"To"+nextLevel.getLevelName()+"-RollupProperty-FromFile"+nextLevelFile+"\n");
+							fw.write("target\t\tdata:"+level.getLevelName()+"-{"+level.getPrimaryAttribute().getLevelAttributeName()+"} " + "schema:"+dimension.getDimensionName()+"Dimension-"+hierarchy.getHierarchyName()+"Hierarchy-Rollup"+RollupIter+" data:"+nextLevel.getLevelName()+"-{"+nextLevel.getPrimaryAttribute().getLevelAttributeName()+"} .\n");
+							fw.write("source\t\tselect distinct "+level.getPrimaryAttribute().getLevelAttributeName()+", "+nextLevel.getPrimaryAttribute().getLevelAttributeName()+" from "+nextLevelFile+"\n");
+							fw.write("\n");
+						}
 						RollupIter++;
 					}
 				}
