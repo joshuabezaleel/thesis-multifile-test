@@ -10,6 +10,19 @@ public class Hierarchy {
 	private Map<String, Level> levels = new LinkedHashMap<String, Level>();
 	private List<Level> levelsList= new ArrayList<Level>();
 	private Level lowestLevel;
+	private List<String> rollupRelationships = new ArrayList<String>();
+	
+	public void addRollupRelationship(String rollupRelationship) {
+		rollupRelationships.add(rollupRelationship);
+	}
+	
+	public String getRollupRelationshipByIndex(int index) {
+		return rollupRelationships.get(index);
+	}
+	
+	public List<String> getAllRollupRelationship() {
+		return rollupRelationships;
+	}
 	
 	public void addLevelToList(Level level) {
 		levelsList.add(level);
@@ -30,6 +43,7 @@ public class Hierarchy {
 	public void setLowestLevel(Level level) {
 		this.lowestLevel = level;
 	}
+	
 	public Level getLowestLevel() {
 		return this.lowestLevel;
 	}

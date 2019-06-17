@@ -23,9 +23,8 @@ public class OLAPCubeHandler {
 	@SuppressWarnings("resource")
 	public OLAPCube make(DataSourceDataTypeFiles dataSourceDataTypeFiles) {
 		String userInput;
-		int userInputInt;
 		Scanner reader = new Scanner(System.in);
-		String currDimension, currHierarchy, currLevel;
+		String currDimension, currHierarchy, currLevel, prevLevel, rollupRelationship;
 		Measure tempMeasure = new Measure(null,null,null);
 		Dimension tempDimension = new Dimension(null);
 		Hierarchy tempHierarchy = new Hierarchy(null);
@@ -71,6 +70,8 @@ public class OLAPCubeHandler {
 						cube.getDimensionByName(currDimension).addHierarchy(currHierarchy, tempHierarchy);
 						
 						boolean isLowestLevel = true;
+						prevLevel = null;
+						
 						do {
 							System.out.println("====== LEVEL ======");
 							System.out.println("The order of the input is from the lowest level to the highest level (ascending): ");
@@ -89,12 +90,32 @@ public class OLAPCubeHandler {
 								cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).addLevel(currLevel, tempLevel);
 								cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).addLevelToList(tempLevel);
 								
+//								System.out.println("1isLowestLevel"+isLowestLevel);
+								
 								if(isLowestLevel) {
 									cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).setLowestLevel(tempLevel);
 									isLowestLevel = false;
+//									System.out.println("asd");
+//									System.out.println("2isLowestLevel"+isLowestLevel);
 								}
+								
+//								System.out.println("asd");
+//								System.out.println("3isLowestLevel"+isLowestLevel);
 
+								if(currLevel!=cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).getLowestLevel().getLevelName()) {
+//									System.out.println("asd");
+//									System.out.println("4isLowestLevel"+isLowestLevel);
+									System.out.println("Insert Rollup Relationship name that connects parent level <<"+currLevel+">> and child level <<"+prevLevel+">>: ");
+									reader = new Scanner(System.in);
+									userInput = reader.nextLine();
+									rollupRelationship = userInput;
+									cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).addRollupRelationship(rollupRelationship);
+								}
+								
+								
 								boolean isPrimaryAttribute = true;
+								
+								prevLevel = currLevel;
 								
 								do {
 									System.out.println("====== LEVEL ATTRIBUTES ======");
@@ -220,6 +241,13 @@ public class OLAPCubeHandler {
 				// Lowest Level
 				hierarchyJSON.put("lowestLevelName", hierarchy.getLowestLevel().getLevelName());
 				
+				// RollupRelationships
+				String tempRollupRelationships = "";
+				for(String rollupRelationship : hierarchy.getAllRollupRelationship()) {
+					tempRollupRelationships = tempRollupRelationships.concat(rollupRelationship + ",");
+				}
+				hierarchyJSON.put("rollupRelationships", tempRollupRelationships);
+				
 				JSONArray levelsJSON = new JSONArray();
 				
 				for(Level level : hierarchy.getAllLevels().values()) {
@@ -334,6 +362,12 @@ public class OLAPCubeHandler {
 				cube.getDimensionByName(currDimension).addHierarchy(currHierarchy, tempHierarchy);
 				
 				lowestLevel = hierarchyJSON.getString("lowestLevelName");
+				
+				String rollupRelationships = hierarchyJSON.getString("rollupRelationships");
+				String[] rollupArray = rollupRelationships.split(",");
+				for(String rollupRelationship : rollupArray) {
+					cube.getDimensionByName(currDimension).getHierarchyByName(currHierarchy).addRollupRelationship(rollupRelationship);
+				}
 				
 				JSONArray levelsJSON = hierarchyJSON.getJSONArray("levels");
 				for(Object level : levelsJSON) {
