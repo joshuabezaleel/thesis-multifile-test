@@ -19,7 +19,6 @@ public class OBDAMaker {
 		String sourceString = "";
 		Measure tempMeasure = new Measure(null,null,null);
 		
-		
 		FileWriter fw = new FileWriter(folderPath+"/"+cube.getCubeName()+".obda");
 		fw.write("[PrefixDeclaration]\n");
 		fw.write(":\t\t\t#\n");

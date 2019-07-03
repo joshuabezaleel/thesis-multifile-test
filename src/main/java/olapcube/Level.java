@@ -1,12 +1,8 @@
 package olapcube;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 
-
-@SuppressWarnings("unused")
 public class Level {
 	private String levelName;
 	private List<LevelAttribute> levelAttributes = new ArrayList<LevelAttribute>();
